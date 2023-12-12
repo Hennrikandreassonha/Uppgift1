@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name='description' content="Your friendly todo app">
+    <link rel="stylesheet" href="style.css" />
+    <script src="JS.js" defer></script>
+    <title>Todos</title>
+</head>
+<body>
+    <header>
+        <h1>todos</h1>
+    </header>
+    <section ction class="to-do-app">
+        <section class="add-note-section">
+            <button id="toggle-all" class="visibility-hidden, toggle-btn-opacity">
+                <img src="down-arrow.png" id="checkmarker" />
+            </button>
+            <form>
+                <input style="border: 1px solid black;"
+                       type="text"
+                       placeholder="Heading"
+                       id="new-note"
+                       name="notetext" />
+                <textarea name="text" placeholder="Text"></textarea>
+                <button>Add note</button>
+            </form>
+        </section>
+        <ul id="to-do-list"></ul>
+        <section id="to-do-info">
+            <span id="itemLeft">1 item left</span>
+            <ul id="filter-options">
+                <button class="filterBtn" id="all" class="filterBtn-show-outline">All</button>
+                <button class="filterBtn" id="active">Active</button>
+                <button class="filterBtn" id="complete">Completed</button>
+            </ul>
+            <button id="clear-completed" class="visibility-hidden">Clear completed</button>
+        </section>
+    </section>
+    <footer>
+        <p>Double-click to edit a todo</p>
+        <p>Written by Henrik och Alexander</p>
+        <p>Part of TodoMVC</p>
+    </footer>
+</body>
+</html>
