@@ -44,5 +44,24 @@ namespace Upggift1.Repository
 
             return noteToRemove.Id;
         }
+        public bool? UpdateStatus(int? id)
+        {
+            if (id == null) return null;
+
+            ToDoNote noteToUpdate= _context.Note.Find(id);
+
+            if (noteToUpdate == null) return null;
+
+            noteToUpdate.IsDone = !noteToUpdate.IsDone;
+            _context.SaveChanges();
+
+            return noteToUpdate.IsDone;
+        }
+        public ToDoNote? GetNote(int? id)
+        {
+            if (id == null) return null;
+
+            return _context.Note.Find(id);
+        }
     }
 }

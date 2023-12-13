@@ -6,5 +6,7 @@ namespace Uppgift1.Repository
     {
         ToDoNote? AddNote(ToDoNoteInputModel note);
         int? RemoveNote(int? id);
+        bool? UpdateStatus(int? id);
+        ToDoNote? GetNote(int? id);
     }
 }

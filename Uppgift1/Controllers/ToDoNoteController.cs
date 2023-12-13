@@ -33,7 +33,7 @@ namespace Uppgift1.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Id(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null) return BadRequest(new { message = "Input was empty" });
 
@@ -42,6 +42,15 @@ namespace Uppgift1.Controllers
             if (id == result) return Ok(new { message = "Note removed"});
 
             return BadRequest(new { message = "Something went wrong" });
+        }
+        [HttpPut("{id}")]
+        public IActionResult Update(int? id)
+        {
+            if (id == null) return BadRequest(new { message = "Input was empty" });
+
+            _repo.UpdateStatus(id);
+
+            return Ok(new { message = "Note updated" });
         }
     }
 }

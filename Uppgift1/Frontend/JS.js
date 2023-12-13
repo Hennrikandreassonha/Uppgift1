@@ -39,7 +39,7 @@ form.onsubmit = async (event) => {
 
         var checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        checkbox.addEventListener("click", completeNote);
+        checkbox.classList.add("checkboxElement");
 
         var deleteBtn = document.createElement("button");
         deleteBtn.id = "remove-btn";
@@ -55,8 +55,9 @@ form.onsubmit = async (event) => {
         
         const noteToDb = new NoteToDb(header, text, form.deadline.value);
         newNote.id = await postDoDB(noteToDb);
-        // console.log(await postDoDB(noteToDb))
         noteList.append(newNote);
+
+        checkbox.addEventListener("click", () => completeNote(newNote, newNote.id));
 
         deleteBtn.addEventListener("click", () => removeItem(newNote.id));
 
@@ -222,22 +223,51 @@ async function deleteNoteById(id) {
     }
 }
 
-function completeNote(event) {
-    let selectedCheckbox = event.target;
-    let noteLiElement = selectedCheckbox.parentNode;
+function completeNote(liElement, id) {
+    let selectedCheckbox = liElement.querySelector(".checkboxElement");
+    // let noteLiElement = selectedCheckbox.parentNode;
 
-    let noteText = noteLiElement.querySelector("label");
+    let noteHeading = liElement.querySelector("h3");
+    let noteText = liElement.querySelector("p");
+
 
     if (selectedCheckbox.checked) {
         noteText.className = "text-decoration-line";
+        noteHeading.className = "text-decoration-line";
+
     } else {
         noteText.className = "text-decoration-none";
-    }
+        noteHeading.className = "text-decoration-none";
 
+    }
+    updateNoteStatus(id);
     updateAmountItemsLeft();
     showClearCompletedBtn();
     filterNotes();
 }
+
+async function updateNoteStatus(id) {
+    try {
+        const response = await fetch(`${apiUrl}/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        returnMsg.textContent = data.message;
+
+    } catch (error) {
+        console.error('Error deleting:', error.message);
+        throw new Error(error.message);
+    }
+}
+
 
 function showDeleteBtn(event) {
     let liElement = event.target;
