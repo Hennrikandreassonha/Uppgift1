@@ -15,12 +15,15 @@ const apiUrl = 'https://localhost:7275/ToDoNote';
 removeBorder();
 showFooterAndToggleBtn();
 
-form.onsubmit = (event) => {
+form.onsubmit = async (event) => {
     event.preventDefault();
 
     //Adding a new note.
     let header = form.notetext.value;
     let text = form.text.value;
+    let deadline = "";
+    if(form.deadline.value != "")
+        deadline = `Deadline: ${form.deadline.value}`;
 
     if (header != "" && text != "") {
         let noteList = document.querySelector("ul");
@@ -46,52 +49,56 @@ form.onsubmit = (event) => {
         let br = document.createElement("br");
 
         let noteDiv = document.createElement("div");
-        noteDiv.append(noteHeading, br, noteText);
+        noteDiv.append(noteHeading, br, deadline, br, noteText);
 
         newNote.append(checkbox, noteDiv, deleteBtn);
-
+        
+        const noteToDb = new NoteToDb(header, text, form.deadline.value);
+        newNote.id = await postDoDB(noteToDb);
+        // console.log(await postDoDB(noteToDb))
         noteList.append(newNote);
 
-        deleteBtn.addEventListener("click", removeItem);
-
-        const noteToDb = new NoteToDb(header, text);
-        postDoDB(noteToDb);
+        deleteBtn.addEventListener("click", () => removeItem(newNote.id));
 
         form.reset();
         updateAmountItemsLeft();
         showFooterAndToggleBtn();
+        console.log(newNote)
     }
 };
 
 class NoteToDb {
-    constructor(header, text) {
+    constructor(header, text, deadline) {
         this.heading = header;
         this.text = text;
+        this.deadline = deadline
     }
 }
 
 let returnMsg = document.getElementById("return-msg");
 
-function postDoDB(newNote) {
-    fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newNote)
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            returnMsg.textContent = data.message;
-        })
-        .catch(error => {
-            returnMsg.textContent = error.message;
+async function postDoDB(newNote) {
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newNote)
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const id = data.id;
+        returnMsg.textContent = data.message;
+
+        return id;
+    } catch (error) {
+        returnMsg.textContent = error.message;
+    }
 }
 
 //Options for filtering the notes.
@@ -178,12 +185,41 @@ function removeListItems() {
     }
 }
 
-function removeItem() {
-    this.parentNode.remove();
+function removeItem(id) {
+    if(id == null || id == "undefined") return;
 
+    let noteLiToDelete = document.getElementById(id);
+
+    noteLiToDelete.remove();
+
+    deleteNoteById(id);
     updateAmountItemsLeft();
     showClearCompletedBtn();
     showFooterAndToggleBtn();
+
+
+}
+
+async function deleteNoteById(id) {
+    try {
+        const response = await fetch(`${apiUrl}/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        returnMsg.textContent = data.message;
+
+    } catch (error) {
+        console.error('Error deleting:', error.message);
+        throw new Error(error.message);
+    }
 }
 
 function completeNote(event) {

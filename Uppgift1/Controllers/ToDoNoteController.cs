@@ -27,13 +27,13 @@ namespace Uppgift1.Controllers
 
             var result = _repo.AddNote(newNote);
 
-            if (result != null) return Ok(new { message = "Note added" });
+            if (result != null) return Ok(new { message = "Note added", id = result.Id });
 
             return BadRequest(new { message = "Something went wrong" });
         }
 
-        [HttpDelete]
-        public IActionResult Id([FromBody] int? id)
+        [HttpDelete("{id}")]
+        public IActionResult Id(int? id)
         {
             if (id == null) return BadRequest(new { message = "Input was empty" });
 

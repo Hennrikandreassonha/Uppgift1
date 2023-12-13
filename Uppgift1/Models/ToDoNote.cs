@@ -13,17 +13,20 @@ namespace Uppgift1.Models
         public string Text { get; set; } = null!;
         public bool IsDone { get; set; } = false;
         public DateTime? DeadLine { get; set; }
+        public DateTime? Created { get; set; }
+
         public User User { get; set; }
 
         public ToDoNote()
         {
 
         }
-        public ToDoNote(string heading, string text, DateTime? deadline = null)
+        public ToDoNote(string heading, string text, DateTime created, DateTime? deadline = null)
         {
             Heading = heading;
             Text = text;
             DeadLine = deadline;
+            Created = created;
             UserId = 1;
         }
     }

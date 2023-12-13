@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Uppgift1.Models
@@ -11,13 +12,16 @@ namespace Uppgift1.Models
     {
         public string Text { get; set; } = null!;
         public string Heading { get; set; } = null!;
+        public string? Deadline { get; set; }
+        [JsonIgnore]
+        public DateTime Created { get; set; }
 
-        public DateTime? DeadLine { get; set; }
-
-        public ToDoNoteInputModel(string heading, string text)
+        public ToDoNoteInputModel(string heading, string text, string? deadline)
         {
             Heading = heading;
             Text = text;
+            Deadline = deadline;
+            Created = DateTime.Now;
         }
     }
 }
