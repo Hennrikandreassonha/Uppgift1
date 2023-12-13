@@ -23,25 +23,25 @@ namespace Uppgift1.Controllers
         [HttpPost]
         public IActionResult Add([FromBody] ToDoNoteInputModel newNote)
         {
-            if (newNote == null) return BadRequest("Note is empty");
+            if (newNote == null) return BadRequest(new { message = "Note is empty" });
 
             var result = _repo.AddNote(newNote);
 
-            if (result != null) return Ok("Note added");
+            if (result != null) return Ok(new { message = "Note added" });
 
-            return BadRequest("Something went wrong");
+            return BadRequest(new { message = "Something went wrong" });
         }
 
         [HttpDelete]
         public IActionResult Id([FromBody] int? id)
         {
-            if (id == null) return BadRequest("Input wass empty");
+            if (id == null) return BadRequest(new { message = "Input was empty" });
 
             var result = _repo.RemoveNote(id);
 
-            if (id == result) return Ok("Note removed");
+            if (id == result) return Ok(new { message = "Note removed"});
 
-            return BadRequest("Something went wrong");
+            return BadRequest(new { message = "Something went wrong" });
         }
     }
 }

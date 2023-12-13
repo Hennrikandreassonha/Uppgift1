@@ -10,7 +10,7 @@ let allNotes = document.querySelector("#all");
 let activeNotes = document.querySelector("#active");
 let completedNotes = document.querySelector("#complete");
 
-const apiUrl = 'https://localhost:7159/ToDoNote';
+const apiUrl = 'https://localhost:7275/ToDoNote';
 
 removeBorder();
 showFooterAndToggleBtn();
@@ -70,6 +70,8 @@ class NoteToDb {
     }
 }
 
+let returnMsg = document.getElementById("return-msg");
+
 function postDoDB(newNote) {
     fetch(apiUrl, {
         method: 'POST',
@@ -85,10 +87,10 @@ function postDoDB(newNote) {
             return response.json();
         })
         .then(data => {
-            console.log('Success:', data);
+            returnMsg.textContent = data.message;
         })
         .catch(error => {
-            console.error('Error:', error);
+            returnMsg.textContent = error.message;
         });
 }
 
