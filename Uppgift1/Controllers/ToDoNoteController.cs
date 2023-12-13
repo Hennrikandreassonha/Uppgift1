@@ -32,8 +32,8 @@ namespace Uppgift1.Controllers
             return BadRequest(new { message = "Something went wrong" });
         }
 
-        [HttpDelete]
-        public IActionResult Id([FromBody] int? id)
+        [HttpDelete("{id}")]
+        public IActionResult Id(int? id)
         {
             if (id == null) return BadRequest(new { message = "Input was empty" });
 
