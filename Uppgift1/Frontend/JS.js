@@ -21,6 +21,9 @@ form.onsubmit = (event) => {
     //Adding a new note.
     let header = form.notetext.value;
     let text = form.text.value;
+    let deadline = "";
+    if(form.deadline.value != "")
+        deadline = `Deadline: ${form.deadline.value}`;
 
     if (header != "" && text != "") {
         let noteList = document.querySelector("ul");
@@ -46,7 +49,7 @@ form.onsubmit = (event) => {
         let br = document.createElement("br");
 
         let noteDiv = document.createElement("div");
-        noteDiv.append(noteHeading, br, noteText);
+        noteDiv.append(noteHeading, br, deadline, br, noteText);
 
         newNote.append(checkbox, noteDiv, deleteBtn);
 
@@ -54,7 +57,7 @@ form.onsubmit = (event) => {
 
         deleteBtn.addEventListener("click", removeItem);
 
-        const noteToDb = new NoteToDb(header, text);
+        const noteToDb = new NoteToDb(header, text, form.deadline.value);
         postDoDB(noteToDb);
 
         form.reset();
@@ -64,9 +67,10 @@ form.onsubmit = (event) => {
 };
 
 class NoteToDb {
-    constructor(header, text) {
+    constructor(header, text, deadline) {
         this.heading = header;
         this.text = text;
+        this.deadline = deadline
     }
 }
 
