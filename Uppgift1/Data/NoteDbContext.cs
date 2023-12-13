@@ -6,6 +6,8 @@ namespace Uppgift1.Data
     public class NoteDbContext : DbContext
     {
         public DbSet<ToDoNote> Note { get; set; }
+        public DbSet<User> User { get; set; }
+
 
         public NoteDbContext(DbContextOptions<NoteDbContext> options)
             : base(options)
@@ -15,7 +17,6 @@ namespace Uppgift1.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
         }
     }
 }
