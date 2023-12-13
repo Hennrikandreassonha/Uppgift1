@@ -19,7 +19,7 @@ namespace ToDoTests
         [Fact]
         public void Add_Note_Should_Return_ToDoNote_With_Details()
         {
-            var noteRequest = new ToDoNoteInputModel("TestHeader", "TestNote");
+            var noteRequest = new ToDoNoteInputModel("TestHeader", "TestNote", null);
 
             var result = _repo.AddNote(noteRequest);
 
@@ -39,7 +39,7 @@ namespace ToDoTests
         [Fact]
         public void Remove_Note_Should_Return_RemovedNote_With_Details()
         {
-            var noteRequest = new ToDoNoteInputModel("TestHeader", "TestNote");
+            var noteRequest = new ToDoNoteInputModel("TestHeader", "TestNote", null);
             var result = _repo.AddNote(noteRequest);
 
             var removed = _repo.RemoveNote(result.Id);
@@ -52,6 +52,25 @@ namespace ToDoTests
         public void Remove_Note_Should_Return_Null()
         {
             var removed = _repo.RemoveNote(null);
+
+            Assert.Null(removed);
+        }
+        [Fact]
+        public void Update_Note_Should_Return_Different_IsDone_Value()
+        {
+            var noteRequest = new ToDoNoteInputModel("TestHeader", "TestNote", null);
+            var addedNote = _repo.AddNote(noteRequest);
+            var currentStatus = addedNote.IsDone;
+
+            var removed = _repo.UpdateStatus(addedNote.Id);
+
+            Assert.NotNull(removed);
+            Assert.NotEqual(currentStatus, removed.Value);
+        }
+        [Fact]
+        public void Update_Note_Should_Return_Null()
+        {
+            var removed = _repo.UpdateStatus(null);
 
             Assert.Null(removed);
         }
