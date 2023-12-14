@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -9,6 +10,7 @@
     <script src="JS.js" defer></script>
     <title>Todos</title>
 </head>
+
 <body>
     <header>
         <h1>todos</h1>
@@ -18,12 +20,9 @@
             <button id="toggle-all" class="visibility-hidden, toggle-btn-opacity">
                 <img src="down-arrow.png" id="checkmarker" />
             </button>
-            <form>
-                <input style="border: 1px solid black;"
-                       type="text"
-                       placeholder="Heading"
-                       id="new-note"
-                       name="notetext" />
+            <form id="todoform">
+                <input style="border: 1px solid black;" type="text" placeholder="Heading" id="new-note"
+                    name="notetext" />
                 <textarea name="text" placeholder="To do content"></textarea>
                 <input type="date" id="datepicker" name="deadline" style="width:150px;">
                 <button>Add note</button>
@@ -41,10 +40,36 @@
             <button id="clear-completed" class="visibility-hidden">Clear completed</button>
         </section>
     </section>
+
+    <section id="login-section" style="border: 1px solid grey; padding: 1rem;">
+        <h3 style="text-align: center;">Login or register to save your notes for another time!</h3>
+
+        <form id="authform" style="display: flex; flex-direction: column; align-items: center;">
+
+            <div style="display: flex; flex-direction: column; margin: 0.5rem;">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required style="width:150px">
+            </div>
+
+            <div style="display: flex; flex-direction: column; margin: 0.5rem;">
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required style="width:150px">
+            </div>
+
+            <div>
+                <button type="submit" style="width:75px" id="loginBtn">Login</button>
+                <button type="submit" style="width:75px" id="registerBtn">Register</button>
+            </div>
+
+        </form>
+        <p id="authreturnmsg"></p>
+    </section>
     <footer>
         <p>Double-click to edit a todo</p>
         <p>Written by Henrik och Alexander</p>
         <p>Part of TodoMVC</p>
     </footer>
 </body>
+
 </html>

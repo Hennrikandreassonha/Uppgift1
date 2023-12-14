@@ -26,6 +26,8 @@ namespace ToDoTests
             Assert.NotNull(result);
             Assert.Equal(noteRequest.Heading, result.Heading);
             Assert.Equal(noteRequest.Text, result.Text);
+            Assert.Equal(DateTime.Parse(noteRequest.Deadline), result.DeadLine);
+
         }
         [Fact]
         public void Add_Note_Should_Return_Null()

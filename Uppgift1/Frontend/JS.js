@@ -1,5 +1,5 @@
-let form = document.querySelector("form");
-
+let form = document.getElementById("todoform");
+let loginForm = document.getElementById("authform");
 
 let toggleAllBtn = document.querySelector("#toggle-all");
 
@@ -10,7 +10,8 @@ let allNotes = document.querySelector("#all");
 let activeNotes = document.querySelector("#active");
 let completedNotes = document.querySelector("#complete");
 
-const apiUrl = 'https://localhost:7275/ToDoNote';
+const noteUrl = 'https://localhost:7275/ToDoNote';
+const authUrl = 'https://localhost:7275/Auth';
 
 removeBorder();
 showFooterAndToggleBtn();
@@ -22,7 +23,7 @@ form.onsubmit = async (event) => {
     let header = form.notetext.value;
     let text = form.text.value;
     let deadline = "";
-    if(form.deadline.value != "")
+    if (form.deadline.value != "")
         deadline = `Deadline: ${form.deadline.value}`;
 
     if (header != "" && text != "") {
@@ -52,7 +53,7 @@ form.onsubmit = async (event) => {
         noteDiv.append(noteHeading, br, deadline, br, noteText);
 
         newNote.append(checkbox, noteDiv, deleteBtn);
-        
+
         const noteToDb = new NoteToDb(header, text, form.deadline.value);
         newNote.id = await postDoDB(noteToDb);
         noteList.append(newNote);
@@ -80,7 +81,7 @@ let returnMsg = document.getElementById("return-msg");
 
 async function postDoDB(newNote) {
     try {
-        const response = await fetch(apiUrl, {
+        const response = await fetch(noteUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -99,6 +100,58 @@ async function postDoDB(newNote) {
         return id;
     } catch (error) {
         returnMsg.textContent = error.message;
+    }
+}
+
+//Handeling auth
+class UserDto {
+    constructor(username, password) {
+        this.username = username;
+        this.password = password;
+    }
+}
+
+loginForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    const userName = loginForm.username.value;
+    const password = loginForm.password.value;
+
+    const user = new UserDto(userName, password);
+
+    var loginBtn = document.getElementById('loginBtn');
+    var registerBtn = document.getElementById('registerBtn');
+
+    if (event.submitter === loginBtn) {
+        handleLogin(user);
+    } else if (event.submitter === registerBtn) {
+        handleRegister(user);
+    }
+});
+
+let authreturnmsg = document.getElementById("authreturnmsg");
+
+async function handleLogin(userDto) {
+
+}
+async function handleRegister(userDto) {
+    try {
+        const response = await fetch(`${authUrl}/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userDto)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        authreturnmsg.textContent = data.message;
+    } catch (error) {
+        authreturnmsg.textContent = error.message;
     }
 }
 
@@ -187,7 +240,7 @@ function removeListItems() {
 }
 
 function removeItem(id) {
-    if(id == null || id == "undefined") return;
+    if (id == null || id == "undefined") return;
 
     let noteLiToDelete = document.getElementById(id);
 
@@ -203,7 +256,7 @@ function removeItem(id) {
 
 async function deleteNoteById(id) {
     try {
-        const response = await fetch(`${apiUrl}/${id}`, {
+        const response = await fetch(`${noteUrl}/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -248,7 +301,7 @@ function completeNote(liElement, id) {
 
 async function updateNoteStatus(id) {
     try {
-        const response = await fetch(`${apiUrl}/${id}`, {
+        const response = await fetch(`${noteUrl}/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
