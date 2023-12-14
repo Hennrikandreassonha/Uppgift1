@@ -16,7 +16,7 @@ namespace Uppgift1.Models
         [JsonIgnore]
         public DateTime Created { get; set; }
 
-        public ToDoNoteInputModel(string heading, string text, string? deadline)
+        public ToDoNoteInputModel(string heading, string text, string? deadline = null)
         {
             Heading = heading;
             Text = text;
