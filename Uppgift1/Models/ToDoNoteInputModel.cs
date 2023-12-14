@@ -16,6 +16,13 @@ namespace Uppgift1.Models
         [JsonIgnore]
         public DateTime Created { get; set; }
 
+        public ToDoNoteInputModel(string heading, string text)
+        {
+            Heading = heading;
+            Text = text;
+            Deadline = null;
+            Created = DateTime.Now;
+        }
         public ToDoNoteInputModel(string heading, string text, string? deadline = null)
         {
             Heading = heading;
