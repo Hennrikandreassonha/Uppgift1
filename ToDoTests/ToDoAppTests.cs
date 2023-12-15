@@ -144,7 +144,7 @@ namespace ToDoTests
             var notes = _repo.GetAllNotes(1);
 
             //Assert
-            Assert.Equal(notes.Length, 0);
+            Assert.Null(notes);
         }
     }
 }

@@ -65,9 +65,12 @@ namespace Upggift1.Repository
 
             return _context.Note.Find(id);
         }
-        public ToDoNote[] GetAllNotes(int id)
+        public ToDoNote[]? GetAllNotes(int id)
         {
-            return _context.Note.Where(x => x.UserId == id).ToArray();
+            var notes = _context.Note.Where(x => x.UserId == id).ToArray();
+
+            if (!notes.Any()) return null;
+            return notes;
         }
     }
 }

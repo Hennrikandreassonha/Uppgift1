@@ -12,7 +12,7 @@ using Uppgift1.Repository;
 
 namespace Uppgift1.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("[controller]")]
     public class ToDoNoteController : Controller
     {
