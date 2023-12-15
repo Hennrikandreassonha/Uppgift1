@@ -135,13 +135,13 @@ namespace ToDoTests
             _dbContext.User.Add(userForTest1);
             _dbContext.User.Add(userForTest2);
 
-            //Wrong ID
-            var newNote1 = new ToDoNoteInputModel("TestHeader", "TestNote", 2, "2023-01-01");
+            var newNote1 = new ToDoNoteInputModel("TestHeader", "TestNote", 1, "2023-01-01");
 
             _repo.AddNote(newNote1);
             _dbContext.SaveChanges();
 
-            var notes = _repo.GetAllNotes(1);
+            //Wrong ID
+            var notes = _repo.GetAllNotes(5);
 
             //Assert
             Assert.Null(notes);
