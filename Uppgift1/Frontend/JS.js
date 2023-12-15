@@ -11,6 +11,7 @@ let activeNotes = document.querySelector("#active");
 let completedNotes = document.querySelector("#complete");
 let noteList = document.querySelector("ul");
 
+var registerBtn = document.getElementById('registerBtn');
 
 const noteUrl = 'https://localhost:7275/ToDoNote';
 const authUrl = 'https://localhost:7275/Auth';
@@ -37,12 +38,14 @@ function updateFrontend() {
         userNameInput.required = true;
         passwordInput.required = true;
         noteList.innerHTML = "";
+        registerBtn.disabled = false
     }
     else {
         authMessage.textContent = "You are logged in";
         loginLogoutBtn.textContent = "Logout";
         userNameInput.required = false;
         passwordInput.required = false;
+        registerBtn.disabled = false
 
         getAllNotes(key, userId);
     }
@@ -199,7 +202,6 @@ loginForm.addEventListener('submit', function (event) {
     const user = new UserDto(userName, password);
 
     var loginBtn = document.getElementById('loginBtn');
-    var registerBtn = document.getElementById('registerBtn');
 
     if (event.submitter === loginBtn) {
         if (loginBtn.textContent == "Login") {
@@ -208,12 +210,14 @@ loginForm.addEventListener('submit', function (event) {
             });
         }
         else {
-            handleLogout().then(() => {
+            clearCookies().then(() => {
                 updateFrontend();
             });
         }
     } else if (event.submitter === registerBtn) {
         handleRegister(user);
+        clearCookies();
+        updateFrontend();
     }
 });
 
@@ -239,10 +243,9 @@ async function handleLogin(userDto) {
         authreturnmsg.textContent = error.message;
     }
 }
-async function handleLogout() {
+async function clearCookies() {
     document.cookie = "api_key= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
     document.cookie = "user_id= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
-
 }
 
 //This cookie should be httponly cookie but it works for this.

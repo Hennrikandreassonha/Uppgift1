@@ -31,7 +31,6 @@ namespace ToDoTests
             Assert.Equal(noteRequest.Heading, result.Heading);
             Assert.Equal(noteRequest.Text, result.Text);
             Assert.Equal(DateTime.Parse(noteRequest.Deadline), result.DeadLine);
-
         }
         [Fact]
         public void Add_Note_Should_Return_Null()
@@ -85,6 +84,42 @@ namespace ToDoTests
             var removed = _repo.UpdateStatus(null);
 
             Assert.Null(removed);
+        }
+        [Fact]
+        public void Get_All_User_Notes_Should_Return_Correct_Amount()
+        {
+            var userForTest = new User("123", "123");
+            _dbContext.User.Add(userForTest);
+
+            var newNote1 = new ToDoNoteInputModel("TestHeader", "TestNote", 1, "2023-01-01");
+            var newNote2 = new ToDoNoteInputModel("TestHeader", "TestNote", 1, "2023-01-01");
+            _repo.AddNote(newNote1);
+            _repo.AddNote(newNote2);
+            _dbContext.SaveChanges();
+
+            var notes = _repo.GetAllNotes(1);
+
+            Assert.NotNull(notes);
+            Assert.NotEqual(notes.Length, 1);
+        }
+        [Fact]
+        public void Get_All_User_Notes_Should_Return_No_Notes()
+        {
+            var userForTest1 = new User("123", "123");
+            var userForTest2 = new User("123", "123");
+
+            _dbContext.User.Add(userForTest1);
+            _dbContext.User.Add(userForTest2);
+
+            //Wrong ID
+            var newNote1 = new ToDoNoteInputModel("TestHeader", "TestNote", 2, "2023-01-01");
+
+            _repo.AddNote(newNote1);
+            _dbContext.SaveChanges();
+
+            var notes = _repo.GetAllNotes(1);
+
+            Assert.Equal(notes.Length, 0);
         }
     }
 }
