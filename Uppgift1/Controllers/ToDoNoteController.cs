@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Uppgift1.Data;
@@ -11,6 +12,7 @@ using Uppgift1.Repository;
 
 namespace Uppgift1.Controllers
 {
+    [Authorize]
     [Route("[controller]")]
     public class ToDoNoteController : Controller
     {

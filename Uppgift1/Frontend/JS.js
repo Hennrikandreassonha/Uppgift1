@@ -15,7 +15,34 @@ const authUrl = 'https://localhost:7275/Auth';
 
 removeBorder();
 showFooterAndToggleBtn();
+updateFrontend();
 
+//Initiates frontend, checking if user is logged in or not.
+function updateFrontend() {
+
+    let key = getCookie("api_key");
+
+    let authMessage = document.getElementById("authmesssage");
+    let loginLogoutBtn = document.getElementById("loginBtn");
+    let userNameInput = document.getElementById("username");
+    let passwordInput = document.getElementById("password");
+
+
+    if (key == "") {
+        authMessage.textContent = "Login or register to save your notes for another time!";
+        loginLogoutBtn.textContent = "Login";
+        userNameInput.required = true;
+        passwordInput.required = true;
+    }
+    else {
+        authMessage.textContent = "You are logged in";
+        loginLogoutBtn.textContent = "Logout";
+        userNameInput.required = false;
+        passwordInput.required = false;
+    }
+    userNameInput.value = "";
+    passwordInput.value = "";
+}
 form.onsubmit = async (event) => {
     event.preventDefault();
 
@@ -54,18 +81,20 @@ form.onsubmit = async (event) => {
 
         newNote.append(checkbox, noteDiv, deleteBtn);
 
-        const noteToDb = new NoteToDb(header, text, form.deadline.value);
-        newNote.id = await postDoDB(noteToDb);
+        const apiKey = getCookie("api_key");
+        if (apiKey != "") {
+            const noteToDb = new NoteToDb(header, text, form.deadline.value);
+            newNote.id = await postDoDB(noteToDb, apiKey);
+        }
         noteList.append(newNote);
 
-        checkbox.addEventListener("click", () => completeNote(newNote, newNote.id));
+        checkbox.addEventListener("click", () => completeNote(newNote, newNote.id, apiKey));
 
-        deleteBtn.addEventListener("click", () => removeItem(newNote.id));
+        deleteBtn.addEventListener("click", () => removeItem(newNote.id, apiKey));
 
         form.reset();
         updateAmountItemsLeft();
         showFooterAndToggleBtn();
-        console.log(newNote)
     }
 };
 
@@ -79,18 +108,20 @@ class NoteToDb {
 
 let returnMsg = document.getElementById("return-msg");
 
-async function postDoDB(newNote) {
+async function postDoDB(newNote, token) {
     try {
         const response = await fetch(noteUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(newNote)
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP error! Status: ${response.status}. Response: ${errorText}`);
         }
 
         const data = await response.json();
@@ -123,7 +154,16 @@ loginForm.addEventListener('submit', function (event) {
     var registerBtn = document.getElementById('registerBtn');
 
     if (event.submitter === loginBtn) {
-        handleLogin(user);
+        if (loginBtn.textContent == "Login") {
+            handleLogin(user).then(() => {
+                updateFrontend();
+            });
+        }
+        else {
+            handleLogout().then(() => {
+                updateFrontend();
+            });
+        }
     } else if (event.submitter === registerBtn) {
         handleRegister(user);
     }
@@ -132,7 +172,63 @@ loginForm.addEventListener('submit', function (event) {
 let authreturnmsg = document.getElementById("authreturnmsg");
 
 async function handleLogin(userDto) {
+    try {
+        const response = await fetch(`${authUrl}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userDto)
+        });
 
+        const data = await response.json();
+        authreturnmsg.textContent = data.message;
+        setCookie("api_key", data.token, 1);
+
+    } catch (error) {
+        authreturnmsg.textContent = error.message;
+    }
+}
+async function handleLogout() {
+    document.cookie = "api_key= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+}
+
+//This cookie should be httponly cookie but it works for this.
+function setCookie(name, value, days) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()}`;
+}
+function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+async function test(token) {
+    try {
+        const response = await fetch(`https://localhost:7275/WeatherForecast`, {
+            method: 'Get',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const data = await response.json();
+        authreturnmsg.textContent = data.message;
+
+    } catch (error) {
+        authreturnmsg.textContent = error.message;
+    }
 }
 async function handleRegister(userDto) {
     try {
@@ -143,13 +239,9 @@ async function handleRegister(userDto) {
             },
             body: JSON.stringify(userDto)
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
         const data = await response.json();
         authreturnmsg.textContent = data.message;
+
     } catch (error) {
         authreturnmsg.textContent = error.message;
     }
@@ -239,27 +331,28 @@ function removeListItems() {
     }
 }
 
-function removeItem(id) {
+function removeItem(id, apiKey) {
     if (id == null || id == "undefined") return;
 
     let noteLiToDelete = document.getElementById(id);
 
     noteLiToDelete.remove();
 
-    deleteNoteById(id);
+    if (apiKey != "") {
+        deleteNoteById(id, apiKey);
+    }
     updateAmountItemsLeft();
     showClearCompletedBtn();
     showFooterAndToggleBtn();
-
-
 }
 
-async function deleteNoteById(id) {
+async function deleteNoteById(id, token) {
     try {
         const response = await fetch(`${noteUrl}/${id}`, {
             method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -276,9 +369,8 @@ async function deleteNoteById(id) {
     }
 }
 
-function completeNote(liElement, id) {
+function completeNote(liElement, id, apiKey) {
     let selectedCheckbox = liElement.querySelector(".checkboxElement");
-    // let noteLiElement = selectedCheckbox.parentNode;
 
     let noteHeading = liElement.querySelector("h3");
     let noteText = liElement.querySelector("p");
@@ -293,7 +385,11 @@ function completeNote(liElement, id) {
         noteHeading.className = "text-decoration-none";
 
     }
-    updateNoteStatus(id);
+
+    if (apiKey != "") {
+        updateNoteStatus(id, apiKey);
+    }
+
     updateAmountItemsLeft();
     showClearCompletedBtn();
     filterNotes();
@@ -304,7 +400,8 @@ async function updateNoteStatus(id) {
         const response = await fetch(`${noteUrl}/${id}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -320,7 +417,6 @@ async function updateNoteStatus(id) {
         throw new Error(error.message);
     }
 }
-
 
 function showDeleteBtn(event) {
     let liElement = event.target;
