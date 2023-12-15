@@ -1,5 +1,6 @@
-let form = document.querySelector("form");
-
+//This file is kind of a mess since it is an old project.
+let form = document.getElementById("todoform");
+let loginForm = document.getElementById("authform");
 
 let toggleAllBtn = document.querySelector("#toggle-all");
 
@@ -9,11 +10,52 @@ let completedToggle = false;
 let allNotes = document.querySelector("#all");
 let activeNotes = document.querySelector("#active");
 let completedNotes = document.querySelector("#complete");
+let noteList = document.querySelector("ul");
 
-const apiUrl = 'https://localhost:7275/ToDoNote';
+var registerBtn = document.getElementById('registerBtn');
+
+let authMessage = document.getElementById("authmesssage");
+let loginLogoutBtn = document.getElementById("loginBtn");
+let userNameInput = document.getElementById("username");
+let passwordInput = document.getElementById("password");
+
+const noteUrl = 'https://localhost:7275/ToDoNote';
+const authUrl = 'https://localhost:7275/Auth';
 
 removeBorder();
 showFooterAndToggleBtn();
+updateFrontend();
+
+//Initiates frontend, checking if user is logged in or not.
+//This is called when something changes for example if user logs out we should remove their notes from frontend.
+function updateFrontend() {
+
+    let key = getCookie("api_key");
+    let userId = getCookie("user_id");
+
+    if (key == "") {
+        authMessage.textContent = "Login or register to save your notes for another time!";
+        loginLogoutBtn.textContent = "Login";
+        userNameInput.required = true;
+        passwordInput.required = true;
+        noteList.innerHTML = "";
+        registerBtn.disabled = false
+    }
+    else {
+        authMessage.textContent = "You are logged in";
+        loginLogoutBtn.textContent = "Logout";
+        userNameInput.required = false;
+        passwordInput.required = false;
+        registerBtn.disabled = false
+
+    }
+
+    if (noteList.childNodes.length == 0 && key != "")
+        getAllNotes(key, userId);
+
+    userNameInput.value = "";
+    passwordInput.value = "";
+}
 
 form.onsubmit = async (event) => {
     event.preventDefault();
@@ -22,75 +64,90 @@ form.onsubmit = async (event) => {
     let header = form.notetext.value;
     let text = form.text.value;
     let deadline = "";
-    if(form.deadline.value != "")
+    if (form.deadline.value != "")
         deadline = `Deadline: ${form.deadline.value}`;
 
     if (header != "" && text != "") {
-        let noteList = document.querySelector("ul");
+        let newNote = createElementForNotelist(header, text, deadline);
 
-        let newNote = document.createElement("li");
-        newNote.addEventListener("mouseover", showDeleteBtn);
-        newNote.addEventListener("mouseleave", hideDeleteBtn);
+        //This isnt really safe i think but its ok for now.
+        const apiKey = getCookie("api_key");
+        const userId = getCookie("user_id");
 
-        let noteHeading = document.createElement("h3");
-        noteHeading.textContent = header;
-        let noteText = document.createElement("p");
-        noteText.textContent = text;
-
-        var checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.classList.add("checkboxElement");
-
-        var deleteBtn = document.createElement("button");
-        deleteBtn.id = "remove-btn";
-        deleteBtn.textContent = "❌";
-        deleteBtn.className = "visibility-hidden";
-
-        let br = document.createElement("br");
-
-        let noteDiv = document.createElement("div");
-        noteDiv.append(noteHeading, br, deadline, br, noteText);
-
-        newNote.append(checkbox, noteDiv, deleteBtn);
-        
-        const noteToDb = new NoteToDb(header, text, form.deadline.value);
-        newNote.id = await postDoDB(noteToDb);
+        if (apiKey != "") {
+            const noteToDb = new NoteToDb(header, text, form.deadline.value, userId);
+            newNote.id = await postToDB(noteToDb, apiKey, userId);
+        }
         noteList.append(newNote);
-
-        checkbox.addEventListener("click", () => completeNote(newNote, newNote.id));
-
-        deleteBtn.addEventListener("click", () => removeItem(newNote.id));
 
         form.reset();
         updateAmountItemsLeft();
         showFooterAndToggleBtn();
-        console.log(newNote)
     }
 };
 
+//Function for adding a new notes making inputs in a complete LI element.
+function createElementForNotelist(header, text, deadline, isDone) {
+    const apiKey = getCookie("api_key");
+    let newNote = document.createElement("li");
+
+    let noteHeading = document.createElement("h3");
+    noteHeading.textContent = header;
+    let noteText = document.createElement("p");
+    noteText.textContent = text;
+
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.classList.add("checkboxElement");
+    if (isDone)
+        checkbox.checked = true;
+
+    var deleteBtn = document.createElement("button");
+    deleteBtn.id = "remove-btn";
+    deleteBtn.textContent = "❌";
+    deleteBtn.className = "visibility-hidden";
+
+    let br = document.createElement("br");
+    let noteDiv = document.createElement("div");
+    noteDiv.append(noteHeading, br, deadline.split('T')[0], br, noteText);
+
+    newNote.append(checkbox, noteDiv, deleteBtn);
+
+    if (apiKey == "") {
+        newNote.id = noteList.childElementCount;
+    }
+
+    checkbox.addEventListener("click", () => completeNote(newNote, newNote.id, apiKey));
+    deleteBtn.addEventListener("click", () => removeItem(newNote.id, apiKey));
+
+    newNote.addEventListener("mouseover", showDeleteBtn);
+    newNote.addEventListener("mouseleave", hideDeleteBtn);
+
+    return newNote;
+}
+
+//Class for sending data for backend.
 class NoteToDb {
-    constructor(header, text, deadline) {
+    constructor(header, text, deadline, userId) {
         this.heading = header;
         this.text = text;
         this.deadline = deadline
+        this.userId = userId;
     }
 }
 
 let returnMsg = document.getElementById("return-msg");
 
-async function postDoDB(newNote) {
+async function postToDB(newNote, token) {
     try {
-        const response = await fetch(apiUrl, {
+        const response = await fetch(noteUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(newNote)
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
 
         const data = await response.json();
         const id = data.id;
@@ -99,6 +156,161 @@ async function postDoDB(newNote) {
         return id;
     } catch (error) {
         returnMsg.textContent = error.message;
+    }
+}
+
+//Getting all notes from database.
+async function getAllNotes(token, userId) {
+    try {
+        const response = await fetch(`${noteUrl}/${userId}`, {
+            method: 'Get',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        //Using this function again to convert to LI elements.
+        addNotesToList(data.notes);
+
+    } catch (error) {
+        returnMsg.textContent = error.message;
+    }
+}
+
+function addNotesToList(notes) {
+    let noteList = document.querySelector("ul");
+
+    notes.forEach(element => {
+
+        if (element.deadLine == undefined)
+            element.deadLine = "";
+
+        const liElement = createElementForNotelist(element.heading, element.text, element.deadLine, element.isDone)
+
+        liElement.id = element.id;
+
+        noteList.append(liElement);
+    });
+}
+
+//Handeling auth
+class UserDto {
+    constructor(username, password) {
+        this.username = username;
+        this.password = password;
+    }
+}
+
+loginForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    //This function handles login/logout and register.
+    const userName = loginForm.username.value;
+    const password = loginForm.password.value;
+
+    const user = new UserDto(userName, password);
+
+    var loginBtn = document.getElementById('loginBtn');
+
+    if (event.submitter === loginBtn) {
+        if (loginBtn.textContent == "Login") {
+            //Handling the login
+            handleLogin(user).then(() => {
+
+            });
+        }
+        else {
+            //Handling logout
+            clearCookies().then(() => {
+                updateFrontend();
+            });
+        }
+    } else if (event.submitter === registerBtn) {
+        //Handling register
+        handleRegister(user);
+        clearCookies();
+        updateFrontend();
+    }
+});
+
+let authreturnmsg = document.getElementById("authreturnmsg");
+
+async function handleLogin(userDto) {
+    try {
+        const response = await fetch(`${authUrl}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userDto)
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            authreturnmsg.textContent = data.message;
+            //Saving the token since the API requires authentication. 
+            //Sending it with the header with requests.
+            //Also saving the id to use for later.
+            setCookie("api_key", data.token, 1);
+            setCookie("user_id", data.id, 1);
+            getAllNotes(data.token, data.id);
+            authMessage.textContent = "You are logged in";
+            loginLogoutBtn.textContent = "Logout";
+            userNameInput.required = false;
+            passwordInput.required = false;
+            registerBtn.disabled = false
+        }
+        else {
+            authreturnmsg.textContent = data.message;
+        }
+
+    } catch (error) {
+        authreturnmsg.textContent = error.message;
+    }
+}
+async function clearCookies() {
+    document.cookie = "api_key= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+    document.cookie = "user_id= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+}
+
+//This cookie should be httponly cookie but it works for this.
+function setCookie(name, value, days) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()}`;
+}
+function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
+async function handleRegister(userDto) {
+    try {
+        const response = await fetch(`${authUrl}/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userDto)
+        });
+        const data = await response.json();
+        authreturnmsg.textContent = data.message;
+
+    } catch (error) {
+        authreturnmsg.textContent = error.message;
     }
 }
 
@@ -186,27 +398,34 @@ function removeListItems() {
     }
 }
 
-function removeItem(id) {
-    if(id == null || id == "undefined") return;
-
+function removeItem(id, apiKey) {
+    if (id == null || id == "undefined") return;
+    
     let noteLiToDelete = document.getElementById(id);
+
+    if (apiKey == "") {
+        
+        noteLiToDelete.remove();
+        return;
+    }
 
     noteLiToDelete.remove();
 
-    deleteNoteById(id);
+    if (apiKey != "" && id != "" && id != undefined) {
+        deleteNoteById(id, apiKey);
+    }
     updateAmountItemsLeft();
     showClearCompletedBtn();
     showFooterAndToggleBtn();
-
-
 }
 
-async function deleteNoteById(id) {
+async function deleteNoteById(id, token) {
     try {
-        const response = await fetch(`${apiUrl}/${id}`, {
+        const response = await fetch(`${noteUrl}/${id}`, {
             method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -223,9 +442,8 @@ async function deleteNoteById(id) {
     }
 }
 
-function completeNote(liElement, id) {
+function completeNote(liElement, id, apiKey) {
     let selectedCheckbox = liElement.querySelector(".checkboxElement");
-    // let noteLiElement = selectedCheckbox.parentNode;
 
     let noteHeading = liElement.querySelector("h3");
     let noteText = liElement.querySelector("p");
@@ -240,18 +458,23 @@ function completeNote(liElement, id) {
         noteHeading.className = "text-decoration-none";
 
     }
-    updateNoteStatus(id);
+
+    if (apiKey != "") {
+        updateNoteStatus(id, apiKey);
+    }
+
     updateAmountItemsLeft();
     showClearCompletedBtn();
     filterNotes();
 }
 
-async function updateNoteStatus(id) {
+async function updateNoteStatus(id, token) {
     try {
-        const response = await fetch(`${apiUrl}/${id}`, {
+        const response = await fetch(`${noteUrl}/${id}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -267,7 +490,6 @@ async function updateNoteStatus(id) {
         throw new Error(error.message);
     }
 }
-
 
 function showDeleteBtn(event) {
     let liElement = event.target;
@@ -327,8 +549,6 @@ function getAmountNotesLeft() {
             counter++;
         }
     });
-
-
 
     return counter;
 }

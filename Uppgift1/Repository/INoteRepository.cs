@@ -8,5 +8,6 @@ namespace Uppgift1.Repository
         int? RemoveNote(int? id);
         bool? UpdateStatus(int? id);
         ToDoNote? GetNote(int? id);
+        ToDoNote[]? GetAllNotes(int id);
     }
 }

@@ -64,10 +64,7 @@ input{
   font-style: italic; 
      
 }
-input[type="text"]
-{
-    opacity: 0.3;
-}
+
 #new-note:focus{
     border: none;
     outline: none;

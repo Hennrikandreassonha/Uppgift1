@@ -13,8 +13,10 @@ namespace Upggift1.Repository
             _context = context;
         }
 
+        //Using repository pattern making it easier to test the code and it removes logic from controller.
         public ToDoNote? AddNote(ToDoNoteInputModel note)
         {
+            //Inputmodel is used as a Dto, Data transfer object. It will be converted to a ToDoNote before its put in database.
             if (note == null) return null;
 
             DateTime? deadlineToDb = null;
@@ -22,7 +24,7 @@ namespace Upggift1.Repository
 
             if (dateParse) deadlineToDb = deadline;
 
-            ToDoNote newNote = new ToDoNote(note.Heading, note.Text, DateTime.Now, deadlineToDb);
+            ToDoNote newNote = new ToDoNote(note.Heading, note.Text, DateTime.Now, note.UserId, deadlineToDb);
 
             if (newNote == null) return null;
 
@@ -48,7 +50,7 @@ namespace Upggift1.Repository
         {
             if (id == null) return null;
 
-            ToDoNote noteToUpdate= _context.Note.Find(id);
+            ToDoNote noteToUpdate = _context.Note.Find(id);
 
             if (noteToUpdate == null) return null;
 
@@ -62,6 +64,13 @@ namespace Upggift1.Repository
             if (id == null) return null;
 
             return _context.Note.Find(id);
+        }
+        public ToDoNote[]? GetAllNotes(int id)
+        {
+            var notes = _context.Note.Where(x => x.UserId == id).ToArray();
+
+            if (!notes.Any()) return null;
+            return notes;
         }
     }
 }

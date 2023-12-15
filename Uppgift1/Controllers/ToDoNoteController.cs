@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Uppgift1.Data;
@@ -11,6 +12,7 @@ using Uppgift1.Repository;
 
 namespace Uppgift1.Controllers
 {
+    //[Authorize]
     [Route("[controller]")]
     public class ToDoNoteController : Controller
     {
@@ -20,10 +22,19 @@ namespace Uppgift1.Controllers
             _repo = repo;
         }
 
+        [HttpGet("{userid}")]
+        public ActionResult<ToDoNote[]> GetAll(int? userId)
+        {
+            if (userId == null) return BadRequest(new { message = "Error" });
+
+            var notes = _repo.GetAllNotes(userId.Value);
+            return Ok(new { notes });
+        }
+
         [HttpPost]
         public IActionResult Add([FromBody] ToDoNoteInputModel newNote)
         {
-            if (newNote == null) return BadRequest(new { message = "Note is empty" });
+            if (newNote == null) return BadRequest(new { message = "Bad request" });
 
             var result = _repo.AddNote(newNote);
 
@@ -46,6 +57,7 @@ namespace Uppgift1.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(int? id)
         {
+            //Updates the status of note (if its done or not)
             if (id == null) return BadRequest(new { message = "Input was empty" });
 
             _repo.UpdateStatus(id);
