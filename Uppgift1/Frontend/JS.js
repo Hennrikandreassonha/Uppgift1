@@ -409,7 +409,6 @@ function removeItem(id, apiKey) {
         return;
     }
 
-
     noteLiToDelete.remove();
 
     if (apiKey != "" && id != "" && id != undefined) {
