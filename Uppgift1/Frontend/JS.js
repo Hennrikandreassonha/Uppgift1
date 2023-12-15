@@ -113,6 +113,10 @@ function createElementForNotelist(header, text, deadline, isDone) {
 
     newNote.append(checkbox, noteDiv, deleteBtn);
 
+    if (apiKey == "") {
+        newNote.id = noteList.childElementCount;
+    }
+
     checkbox.addEventListener("click", () => completeNote(newNote, newNote.id, apiKey));
     deleteBtn.addEventListener("click", () => removeItem(newNote.id, apiKey));
 
@@ -214,7 +218,7 @@ loginForm.addEventListener('submit', function (event) {
         if (loginBtn.textContent == "Login") {
             //Handling the login
             handleLogin(user).then(() => {
-               
+
             });
         }
         else {
@@ -244,8 +248,7 @@ async function handleLogin(userDto) {
         });
 
         const data = await response.json();
-        if(response.ok)
-        {
+        if (response.ok) {
             authreturnmsg.textContent = data.message;
             //Saving the token since the API requires authentication. 
             //Sending it with the header with requests.
@@ -259,9 +262,8 @@ async function handleLogin(userDto) {
             passwordInput.required = false;
             registerBtn.disabled = false
         }
-        else{
+        else {
             authreturnmsg.textContent = data.message;
-
         }
 
     } catch (error) {
@@ -398,8 +400,15 @@ function removeListItems() {
 
 function removeItem(id, apiKey) {
     if (id == null || id == "undefined") return;
-
+    
     let noteLiToDelete = document.getElementById(id);
+
+    if (apiKey == "") {
+        
+        noteLiToDelete.remove();
+        return;
+    }
+
 
     noteLiToDelete.remove();
 
