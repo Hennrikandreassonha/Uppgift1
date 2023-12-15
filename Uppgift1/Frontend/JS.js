@@ -62,11 +62,8 @@ form.onsubmit = async (event) => {
 
         let newNote = createElementForNotelist(header, text, deadline);
 
-        newNote.addEventListener("mouseover", showDeleteBtn);
-        newNote.addEventListener("mouseleave", hideDeleteBtn);
-
-        const apiKey = getCookie("api_key");
         //This isnt really safe i think but its ok for now.
+        const apiKey = getCookie("api_key");
         const userId = getCookie("user_id");
 
         if (apiKey != "") {
@@ -75,8 +72,6 @@ form.onsubmit = async (event) => {
         }
         noteList.append(newNote);
 
-
-
         form.reset();
         updateAmountItemsLeft();
         showFooterAndToggleBtn();
@@ -84,6 +79,8 @@ form.onsubmit = async (event) => {
 };
 
 function createElementForNotelist(header, text, deadline, isDone) {
+    const apiKey = getCookie("api_key");
+    const userId = getCookie("user_id");
     let newNote = document.createElement("li");
 
     let noteHeading = document.createElement("h3");
@@ -104,12 +101,15 @@ function createElementForNotelist(header, text, deadline, isDone) {
 
     let br = document.createElement("br");
     let noteDiv = document.createElement("div");
-    noteDiv.append(noteHeading, br, deadline, br, noteText);
+    noteDiv.append(noteHeading, br, deadline.split('T')[0], br, noteText);
 
     newNote.append(checkbox, noteDiv, deleteBtn);
 
     checkbox.addEventListener("click", () => completeNote(newNote, newNote.id, apiKey));
     deleteBtn.addEventListener("click", () => removeItem(newNote.id, apiKey));
+
+    newNote.addEventListener("mouseover", showDeleteBtn);
+    newNote.addEventListener("mouseleave", hideDeleteBtn);
 
     return newNote;
 }
@@ -173,9 +173,11 @@ function addNotesToList(notes) {
         if (element.deadLine == undefined)
             element.deadLine = "";
 
-        const liNotElement = createElementForNotelist(element.heading, element.text, element.deadLine, element.isDone)
+        const liElement = createElementForNotelist(element.heading, element.text, element.deadLine, element.isDone)
 
-        noteList.append(liNotElement);
+        liElement.id = element.id;
+
+        noteList.append(liElement);
     });
 }
 
