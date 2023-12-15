@@ -1,3 +1,4 @@
+//This file is kind of a mess since it is an old project.
 let form = document.getElementById("todoform");
 let loginForm = document.getElementById("authform");
 
@@ -13,6 +14,11 @@ let noteList = document.querySelector("ul");
 
 var registerBtn = document.getElementById('registerBtn');
 
+let authMessage = document.getElementById("authmesssage");
+let loginLogoutBtn = document.getElementById("loginBtn");
+let userNameInput = document.getElementById("username");
+let passwordInput = document.getElementById("password");
+
 const noteUrl = 'https://localhost:7275/ToDoNote';
 const authUrl = 'https://localhost:7275/Auth';
 
@@ -21,16 +27,11 @@ showFooterAndToggleBtn();
 updateFrontend();
 
 //Initiates frontend, checking if user is logged in or not.
+//This is called when something changes for example if user logs out we should remove their notes from frontend.
 function updateFrontend() {
 
     let key = getCookie("api_key");
     let userId = getCookie("user_id");
-
-    let authMessage = document.getElementById("authmesssage");
-    let loginLogoutBtn = document.getElementById("loginBtn");
-    let userNameInput = document.getElementById("username");
-    let passwordInput = document.getElementById("password");
-
 
     if (key == "") {
         authMessage.textContent = "Login or register to save your notes for another time!";
@@ -47,8 +48,11 @@ function updateFrontend() {
         passwordInput.required = false;
         registerBtn.disabled = false
 
-        getAllNotes(key, userId);
     }
+
+    if (noteList.childNodes.length == 0 && key != "")
+        getAllNotes(key, userId);
+
     userNameInput.value = "";
     passwordInput.value = "";
 }
@@ -82,9 +86,9 @@ form.onsubmit = async (event) => {
     }
 };
 
+//Function for adding a new notes making inputs in a complete LI element.
 function createElementForNotelist(header, text, deadline, isDone) {
     const apiKey = getCookie("api_key");
-    const userId = getCookie("user_id");
     let newNote = document.createElement("li");
 
     let noteHeading = document.createElement("h3");
@@ -118,6 +122,7 @@ function createElementForNotelist(header, text, deadline, isDone) {
     return newNote;
 }
 
+//Class for sending data for backend.
 class NoteToDb {
     constructor(header, text, deadline, userId) {
         this.heading = header;
@@ -150,6 +155,7 @@ async function postToDB(newNote, token) {
     }
 }
 
+//Getting all notes from database.
 async function getAllNotes(token, userId) {
     try {
         const response = await fetch(`${noteUrl}/${userId}`, {
@@ -161,6 +167,7 @@ async function getAllNotes(token, userId) {
         });
 
         const data = await response.json();
+        //Using this function again to convert to LI elements.
         addNotesToList(data.notes);
 
     } catch (error) {
@@ -169,7 +176,6 @@ async function getAllNotes(token, userId) {
 }
 
 function addNotesToList(notes) {
-
     let noteList = document.querySelector("ul");
 
     notes.forEach(element => {
@@ -196,6 +202,7 @@ class UserDto {
 loginForm.addEventListener('submit', function (event) {
     event.preventDefault();
 
+    //This function handles login/logout and register.
     const userName = loginForm.username.value;
     const password = loginForm.password.value;
 
@@ -205,16 +212,19 @@ loginForm.addEventListener('submit', function (event) {
 
     if (event.submitter === loginBtn) {
         if (loginBtn.textContent == "Login") {
+            //Handling the login
             handleLogin(user).then(() => {
-                updateFrontend();
+               
             });
         }
         else {
+            //Handling logout
             clearCookies().then(() => {
                 updateFrontend();
             });
         }
     } else if (event.submitter === registerBtn) {
+        //Handling register
         handleRegister(user);
         clearCookies();
         updateFrontend();
@@ -234,10 +244,25 @@ async function handleLogin(userDto) {
         });
 
         const data = await response.json();
-        authreturnmsg.textContent = data.message;
-        setCookie("api_key", data.token, 1);
-        setCookie("user_id", data.id, 1);
-        getAllNotes(data.token, data.id);
+        if(response.ok)
+        {
+            authreturnmsg.textContent = data.message;
+            //Saving the token since the API requires authentication. 
+            //Sending it with the header with requests.
+            //Also saving the id to use for later.
+            setCookie("api_key", data.token, 1);
+            setCookie("user_id", data.id, 1);
+            getAllNotes(data.token, data.id);
+            authMessage.textContent = "You are logged in";
+            loginLogoutBtn.textContent = "Logout";
+            userNameInput.required = false;
+            passwordInput.required = false;
+            registerBtn.disabled = false
+        }
+        else{
+            authreturnmsg.textContent = data.message;
+
+        }
 
     } catch (error) {
         authreturnmsg.textContent = error.message;
@@ -269,22 +294,7 @@ function getCookie(cname) {
     }
     return "";
 }
-async function test(token) {
-    try {
-        const response = await fetch(`https://localhost:7275/WeatherForecast`, {
-            method: 'Get',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        const data = await response.json();
-        authreturnmsg.textContent = data.message;
 
-    } catch (error) {
-        authreturnmsg.textContent = error.message;
-    }
-}
 async function handleRegister(userDto) {
     try {
         const response = await fetch(`${authUrl}/register`, {
@@ -393,7 +403,7 @@ function removeItem(id, apiKey) {
 
     noteLiToDelete.remove();
 
-    if (apiKey != "") {
+    if (apiKey != "" && id != "" && id != undefined) {
         deleteNoteById(id, apiKey);
     }
     updateAmountItemsLeft();

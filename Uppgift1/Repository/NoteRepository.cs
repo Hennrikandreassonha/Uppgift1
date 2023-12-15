@@ -13,8 +13,10 @@ namespace Upggift1.Repository
             _context = context;
         }
 
+        //Using repository pattern making it easier to test the code and it removes logic from controller.
         public ToDoNote? AddNote(ToDoNoteInputModel note)
         {
+            //Inputmodel is used as a Dto, Data transfer object. It will be converted to a ToDoNote before its put in database.
             if (note == null) return null;
 
             DateTime? deadlineToDb = null;

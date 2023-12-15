@@ -51,35 +51,12 @@ namespace Uppgift1.Controllers
             if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, userFromDb.PasswordHash))
                 return BadRequest(new { message = $"Bad password or username" });
 
-            var token = GenerateToken(userFromDb.Username, userFromDb.PasswordHash);
+            var token = GenerateToken();
 
             return Ok(new { message = $"Success!", token, id = userFromDb.Id});
         }
-        //Creating token.
-        private string CreateToken(User user)
-        {
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Username)
-            };
-
-            var appSettingsKey = _configuration.GetSection("Authentication:Schemes:Bearer:SigningKeys:0:Value");
-            //This key should be stored somewhere else maybe keyvault.
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSettingsKey.Value));
-
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: credentials,
-                issuer: "dotnet-user-jwts",
-                audience: "https://localhost:7275"
-                );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-        private string GenerateToken(string userName, string password)
+        //Creating token. It is valid for one day.
+        private string GenerateToken()
         {
             SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfiguration:TokenSecret"]));
             SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);

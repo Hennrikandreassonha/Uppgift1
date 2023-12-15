@@ -57,6 +57,7 @@ namespace Uppgift1.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(int? id)
         {
+            //Updates the status of note (if its done or not)
             if (id == null) return BadRequest(new { message = "Input was empty" });
 
             _repo.UpdateStatus(id);
