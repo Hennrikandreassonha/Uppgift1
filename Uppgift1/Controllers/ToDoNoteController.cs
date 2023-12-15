@@ -22,17 +22,14 @@ namespace Uppgift1.Controllers
             _repo = repo;
         }
 
-        //[HttpGet]
-        //public IActionResult Add([FromBody] ToDoNoteInputModel newNote)
-        //{
-        //    if (newNote == null) return BadRequest(new { message = "Note is empty" });
+        [HttpGet("{userid}")]
+        public ActionResult<ToDoNote[]> GetAll(int? userId)
+        {
+            if (userId == null) return BadRequest(new { message = "Error" });
 
-        //    var result = _repo.AddNote(newNote);
-
-        //    if (result != null) return Ok(new { message = "Note added", id = result.Id });
-
-        //    return BadRequest(new { message = "Something went wrong" });
-        //}
+            var notes = _repo.GetAllNotes(userId.Value);
+            return Ok(new { notes });
+        }
 
         [HttpPost]
         public IActionResult Add([FromBody] ToDoNoteInputModel newNote)

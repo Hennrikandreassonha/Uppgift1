@@ -21,6 +21,7 @@ updateFrontend();
 function updateFrontend() {
 
     let key = getCookie("api_key");
+    let userId = getCookie("user_id");
 
     let authMessage = document.getElementById("authmesssage");
     let loginLogoutBtn = document.getElementById("loginBtn");
@@ -39,6 +40,8 @@ function updateFrontend() {
         loginLogoutBtn.textContent = "Logout";
         userNameInput.required = false;
         passwordInput.required = false;
+
+        getAllNotes(key, userId);
     }
     userNameInput.value = "";
     passwordInput.value = "";
@@ -57,36 +60,14 @@ form.onsubmit = async (event) => {
     if (header != "" && text != "") {
         let noteList = document.querySelector("ul");
 
-        let newNote = document.createElement("li");
+        let newNote = createElementForNotelist(header, text, deadline);
+
         newNote.addEventListener("mouseover", showDeleteBtn);
         newNote.addEventListener("mouseleave", hideDeleteBtn);
-
-        let noteHeading = document.createElement("h3");
-        noteHeading.textContent = header;
-        let noteText = document.createElement("p");
-        noteText.textContent = text;
-
-        var checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.classList.add("checkboxElement");
-
-        var deleteBtn = document.createElement("button");
-        deleteBtn.id = "remove-btn";
-        deleteBtn.textContent = "❌";
-        deleteBtn.className = "visibility-hidden";
-
-        let br = document.createElement("br");
-
-        let noteDiv = document.createElement("div");
-        noteDiv.append(noteHeading, br, deadline, br, noteText);
-
-        newNote.append(checkbox, noteDiv, deleteBtn);
 
         const apiKey = getCookie("api_key");
         //This isnt really safe i think but its ok for now.
         const userId = getCookie("user_id");
-
-        const test = document.cookie;
 
         if (apiKey != "") {
             const noteToDb = new NoteToDb(header, text, form.deadline.value, userId);
@@ -94,15 +75,44 @@ form.onsubmit = async (event) => {
         }
         noteList.append(newNote);
 
-        checkbox.addEventListener("click", () => completeNote(newNote, newNote.id, apiKey));
 
-        deleteBtn.addEventListener("click", () => removeItem(newNote.id, apiKey));
 
         form.reset();
         updateAmountItemsLeft();
         showFooterAndToggleBtn();
     }
 };
+
+function createElementForNotelist(header, text, deadline, isDone) {
+    let newNote = document.createElement("li");
+
+    let noteHeading = document.createElement("h3");
+    noteHeading.textContent = header;
+    let noteText = document.createElement("p");
+    noteText.textContent = text;
+
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.classList.add("checkboxElement");
+    if (isDone)
+        checkbox.checked = true;
+
+    var deleteBtn = document.createElement("button");
+    deleteBtn.id = "remove-btn";
+    deleteBtn.textContent = "❌";
+    deleteBtn.className = "visibility-hidden";
+
+    let br = document.createElement("br");
+    let noteDiv = document.createElement("div");
+    noteDiv.append(noteHeading, br, deadline, br, noteText);
+
+    newNote.append(checkbox, noteDiv, deleteBtn);
+
+    checkbox.addEventListener("click", () => completeNote(newNote, newNote.id, apiKey));
+    deleteBtn.addEventListener("click", () => removeItem(newNote.id, apiKey));
+
+    return newNote;
+}
 
 class NoteToDb {
     constructor(header, text, deadline, userId) {
@@ -126,11 +136,6 @@ async function postToDB(newNote, token) {
             body: JSON.stringify(newNote)
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP error! Status: ${response.status}. Response: ${errorText}`);
-        }
-
         const data = await response.json();
         const id = data.id;
         returnMsg.textContent = data.message;
@@ -139,6 +144,39 @@ async function postToDB(newNote, token) {
     } catch (error) {
         returnMsg.textContent = error.message;
     }
+}
+
+async function getAllNotes(token, userId) {
+    try {
+        const response = await fetch(`${noteUrl}/${userId}`, {
+            method: 'Get',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        addNotesToList(data.notes);
+
+    } catch (error) {
+        returnMsg.textContent = error.message;
+    }
+}
+
+function addNotesToList(notes) {
+
+    let noteList = document.querySelector("ul");
+
+    notes.forEach(element => {
+
+        if (element.deadLine == undefined)
+            element.deadLine = "";
+
+        const liNotElement = createElementForNotelist(element.heading, element.text, element.deadLine, element.isDone)
+
+        noteList.append(liNotElement);
+    });
 }
 
 //Handeling auth
@@ -192,6 +230,7 @@ async function handleLogin(userDto) {
         authreturnmsg.textContent = data.message;
         setCookie("api_key", data.token, 1);
         setCookie("user_id", data.id, 1);
+        getAllNotes(data.token, data.id);
 
     } catch (error) {
         authreturnmsg.textContent = error.message;

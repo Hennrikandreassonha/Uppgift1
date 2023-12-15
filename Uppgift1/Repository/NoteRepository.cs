@@ -48,7 +48,7 @@ namespace Upggift1.Repository
         {
             if (id == null) return null;
 
-            ToDoNote noteToUpdate= _context.Note.Find(id);
+            ToDoNote noteToUpdate = _context.Note.Find(id);
 
             if (noteToUpdate == null) return null;
 
@@ -62,6 +62,10 @@ namespace Upggift1.Repository
             if (id == null) return null;
 
             return _context.Note.Find(id);
+        }
+        public ToDoNote[] GetAllNotes(int id)
+        {
+            return _context.Note.Where(x => x.UserId == id).ToArray();
         }
     }
 }
