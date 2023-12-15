@@ -9,6 +9,8 @@ let completedToggle = false;
 let allNotes = document.querySelector("#all");
 let activeNotes = document.querySelector("#active");
 let completedNotes = document.querySelector("#complete");
+let noteList = document.querySelector("ul");
+
 
 const noteUrl = 'https://localhost:7275/ToDoNote';
 const authUrl = 'https://localhost:7275/Auth';
@@ -34,6 +36,7 @@ function updateFrontend() {
         loginLogoutBtn.textContent = "Login";
         userNameInput.required = true;
         passwordInput.required = true;
+        noteList.innerHTML = "";
     }
     else {
         authMessage.textContent = "You are logged in";
@@ -58,8 +61,6 @@ form.onsubmit = async (event) => {
         deadline = `Deadline: ${form.deadline.value}`;
 
     if (header != "" && text != "") {
-        let noteList = document.querySelector("ul");
-
         let newNote = createElementForNotelist(header, text, deadline);
 
         //This isnt really safe i think but its ok for now.
@@ -527,8 +528,6 @@ function getAmountNotesLeft() {
             counter++;
         }
     });
-
-
 
     return counter;
 }
