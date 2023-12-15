@@ -36,7 +36,7 @@ namespace Uppgift1.Controllers
             _context.Add(user);
             _context.SaveChanges();
 
-            return Ok(new { message = $"User already exist" });
+            return Ok(new { message = $"Registerd!" });
         }
         [HttpPost("login")]
         public IActionResult Login([FromBody] UserDto loginDto)
@@ -53,7 +53,7 @@ namespace Uppgift1.Controllers
 
             var token = GenerateToken(userFromDb.Username, userFromDb.PasswordHash);
 
-            return Ok(new { message = $"Success!", token });
+            return Ok(new { message = $"Success!", token, id = userFromDb.Id});
         }
         //Creating token.
         private string CreateToken(User user)

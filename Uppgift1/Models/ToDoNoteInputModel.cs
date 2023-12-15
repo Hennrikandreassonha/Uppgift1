@@ -12,6 +12,7 @@ namespace Uppgift1.Models
     {
         public string Text { get; set; } = null!;
         public string Heading { get; set; } = null!;
+        public int UserId{ get; set; }
         public string? Deadline { get; set; }
         [JsonIgnore]
         public DateTime Created { get; set; }
@@ -19,17 +20,19 @@ namespace Uppgift1.Models
         {
             
         }
-        public ToDoNoteInputModel(string heading, string text)
+        public ToDoNoteInputModel(string heading, string text, int userId)
         {
             Heading = heading;
             Text = text;
+            UserId = userId;
             Deadline = null;
             Created = DateTime.Now;
         }
-        public ToDoNoteInputModel(string heading, string text, string? deadline = null)
+        public ToDoNoteInputModel(string heading, string text, int userId, string? deadline = null)
         {
             Heading = heading;
             Text = text;
+            UserId = userId;
             Deadline = deadline;
             Created = DateTime.Now;
         }

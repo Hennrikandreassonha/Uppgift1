@@ -22,10 +22,22 @@ namespace Uppgift1.Controllers
             _repo = repo;
         }
 
+        //[HttpGet]
+        //public IActionResult Add([FromBody] ToDoNoteInputModel newNote)
+        //{
+        //    if (newNote == null) return BadRequest(new { message = "Note is empty" });
+
+        //    var result = _repo.AddNote(newNote);
+
+        //    if (result != null) return Ok(new { message = "Note added", id = result.Id });
+
+        //    return BadRequest(new { message = "Something went wrong" });
+        //}
+
         [HttpPost]
         public IActionResult Add([FromBody] ToDoNoteInputModel newNote)
         {
-            if (newNote == null) return BadRequest(new { message = "Note is empty" });
+            if (newNote == null) return BadRequest(new { message = "Bad request" });
 
             var result = _repo.AddNote(newNote);
 

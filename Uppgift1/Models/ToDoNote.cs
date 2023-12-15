@@ -21,13 +21,13 @@ namespace Uppgift1.Models
         {
 
         }
-        public ToDoNote(string heading, string text, DateTime created, DateTime? deadline = null)
+        public ToDoNote(string heading, string text, DateTime created, int userId, DateTime? deadline = null)
         {
             Heading = heading;
             Text = text;
             DeadLine = deadline;
             Created = created;
-            UserId = 1;
+            UserId = userId;
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Upggift1.Repository
 
             if (dateParse) deadlineToDb = deadline;
 
-            ToDoNote newNote = new ToDoNote(note.Heading, note.Text, DateTime.Now, deadlineToDb);
+            ToDoNote newNote = new ToDoNote(note.Heading, note.Text, DateTime.Now, note.UserId, deadlineToDb);
 
             if (newNote == null) return null;
 

@@ -43,6 +43,7 @@ function updateFrontend() {
     userNameInput.value = "";
     passwordInput.value = "";
 }
+
 form.onsubmit = async (event) => {
     event.preventDefault();
 
@@ -82,9 +83,14 @@ form.onsubmit = async (event) => {
         newNote.append(checkbox, noteDiv, deleteBtn);
 
         const apiKey = getCookie("api_key");
+        //This isnt really safe i think but its ok for now.
+        const userId = getCookie("user_id");
+
+        const test = document.cookie;
+
         if (apiKey != "") {
-            const noteToDb = new NoteToDb(header, text, form.deadline.value);
-            newNote.id = await postDoDB(noteToDb, apiKey);
+            const noteToDb = new NoteToDb(header, text, form.deadline.value, userId);
+            newNote.id = await postToDB(noteToDb, apiKey, userId);
         }
         noteList.append(newNote);
 
@@ -99,16 +105,17 @@ form.onsubmit = async (event) => {
 };
 
 class NoteToDb {
-    constructor(header, text, deadline) {
+    constructor(header, text, deadline, userId) {
         this.heading = header;
         this.text = text;
         this.deadline = deadline
+        this.userId = userId;
     }
 }
 
 let returnMsg = document.getElementById("return-msg");
 
-async function postDoDB(newNote, token) {
+async function postToDB(newNote, token) {
     try {
         const response = await fetch(noteUrl, {
             method: 'POST',
@@ -184,6 +191,7 @@ async function handleLogin(userDto) {
         const data = await response.json();
         authreturnmsg.textContent = data.message;
         setCookie("api_key", data.token, 1);
+        setCookie("user_id", data.id, 1);
 
     } catch (error) {
         authreturnmsg.textContent = error.message;
@@ -191,6 +199,8 @@ async function handleLogin(userDto) {
 }
 async function handleLogout() {
     document.cookie = "api_key= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+    document.cookie = "user_id= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+
 }
 
 //This cookie should be httponly cookie but it works for this.
@@ -395,7 +405,7 @@ function completeNote(liElement, id, apiKey) {
     filterNotes();
 }
 
-async function updateNoteStatus(id) {
+async function updateNoteStatus(id, token) {
     try {
         const response = await fetch(`${noteUrl}/${id}`, {
             method: 'PUT',
