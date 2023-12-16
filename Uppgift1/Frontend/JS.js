@@ -19,8 +19,12 @@ let loginLogoutBtn = document.getElementById("loginBtn");
 let userNameInput = document.getElementById("username");
 let passwordInput = document.getElementById("password");
 
+let returnMsg = document.getElementById("return-msg");
+
 const noteUrl = 'https://localhost:7275/ToDoNote';
 const authUrl = 'https://localhost:7275/Auth';
+
+returnMsg.textContent = "";
 
 removeBorder();
 showFooterAndToggleBtn();
@@ -136,8 +140,6 @@ class NoteToDb {
     }
 }
 
-let returnMsg = document.getElementById("return-msg");
-
 async function postToDB(newNote, token) {
     try {
         const response = await fetch(noteUrl, {
@@ -171,8 +173,11 @@ async function getAllNotes(token, userId) {
         });
 
         const data = await response.json();
+        returnMsg.textContent = data.message;
+
         //Using this function again to convert to LI elements.
-        addNotesToList(data.notes);
+        if(data.notes != null)
+            addNotesToList(data.notes);
 
     } catch (error) {
         returnMsg.textContent = error.message;
@@ -415,7 +420,6 @@ function removeItem(id, apiKey) {
         deleteNoteById(id, apiKey);
     }
     updateAmountItemsLeft();
-    showClearCompletedBtn();
     showFooterAndToggleBtn();
 }
 
@@ -464,7 +468,6 @@ function completeNote(liElement, id, apiKey) {
     }
 
     updateAmountItemsLeft();
-    showClearCompletedBtn();
     filterNotes();
 }
 
@@ -518,25 +521,6 @@ function updateAmountItemsLeft() {
     itemLeftlabel.textContent = `${counter} item${pluralSingular} left`;
 }
 
-let clearCompletedBtn = document.querySelector("#clear-completed");
-
-clearCompletedBtn.addEventListener("click", clearCompleted);
-
-function clearCompleted() {
-    let noteList = document.querySelectorAll("#to-do-list li");
-
-    noteList.forEach(task => {
-        let checkForCompleted = task.querySelector('input[type="checkbox"]');
-
-        if (checkForCompleted.checked) {
-            task.remove();
-        }
-
-    });
-    updateAmountItemsLeft();
-    showClearCompletedBtn();
-    showFooterAndToggleBtn();
-}
 //Keep track on how many items is left.
 function getAmountNotesLeft() {
     let noteList = document.querySelectorAll("#to-do-list li");
@@ -582,30 +566,6 @@ function getAmountNotesDone() {
     return counter;
 }
 
-//Displays the clear completed button depending on if any notes are completed
-function showClearCompletedBtn() {
-    let clearCompletedBtn = document.querySelector("#clear-completed");
-    let counter = getAmountNotesDone();
-    const width = window.innerWidth;
-
-    //Om skärmen är liten och det finns klara notes
-    if (width < 430 && counter > 0) {
-        clearCompletedBtn.className = "display-inline-block";
-    }
-    //Om skärmen är liten och det inte finns några klara
-    else if (width < 430) {
-        clearCompletedBtn.className = "display-none";
-    }
-    //Om skärmen är stor och det finns klara notes
-    else if (counter > 0) {
-        clearCompletedBtn.className = "visibility-visible";
-    }
-    //Skärmen är stor och det finns inga klara notes.
-    else {
-        clearCompletedBtn.className = "visibility-hidden";
-    }
-}
-
 toggleAllBtn.addEventListener("mousedown", function (event) {
     event.preventDefault();
     toggleAllNotes();
@@ -621,7 +581,6 @@ function toggleAllNotes() {
         completeAllNotes();
     }
     updateAmountItemsLeft();
-    showClearCompletedBtn();
     filterNotes();
 }
 

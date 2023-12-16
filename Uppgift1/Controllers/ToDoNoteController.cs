@@ -28,6 +28,9 @@ namespace Uppgift1.Controllers
             if (userId == null) return BadRequest(new { message = "Error" });
 
             var notes = _repo.GetAllNotes(userId.Value);
+
+            if(notes == null) return Ok(new { message = "You have no saved notes" });
+
             return Ok(new { notes });
         }
 
