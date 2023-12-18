@@ -152,17 +152,16 @@ namespace ToDoTests
             Assert.Null(notes);
         }
         [Fact]
-        public void Add_User_Should_Return_Same_Valuess()
+        public void Add_User_Should_Return_Same_Values()
         {
             //Arrange
-            var userToAdd = new User("123", "123");
+            var userToAdd = new User("Test", "123");
 
             //Act
             var addedUser = _userRepo.AddUser(userToAdd);
 
             //Assert
-            Assert.NotNull(addedUser);
-            Assert.Equal(addedUser.Username, userToAdd.Username);
+            Assert.Equal(userToAdd.Username, addedUser.Username);
         }
         [Fact]
         public void Already_Existing_User_Should_Return_Null()

@@ -14,7 +14,8 @@ namespace Uppgift1.Repository
         public User? AddUser(User? user)
         {
             //Checking if user already exists.
-            if (_context.User.Where(x => x.Username == user.Username).FirstOrDefault() != null) return null;
+            var existingUser = _context.User.Where(x => x.Username == user.Username).FirstOrDefault();
+            if (existingUser != null) return null;
 
             _context.User.Add(user);
             _context.SaveChanges();
