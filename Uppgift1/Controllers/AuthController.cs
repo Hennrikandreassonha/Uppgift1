@@ -5,18 +5,20 @@ using System.Security.Claims;
 using System.Text;
 using Uppgift1.Data;
 using Uppgift1.Models;
+using Uppgift1.Repository;
 
 namespace Uppgift1.Controllers
 {
     [Route("[controller]")]
     public class AuthController : Controller
     {
-        private readonly NoteDbContext _context;
+        private IUserRepository _repo;
+
         private readonly IConfiguration _configuration;
-        public AuthController(NoteDbContext context, IConfiguration configuration)
+        public AuthController(IUserRepository repo, IConfiguration configuration)
         {
-            _context = context;
             _configuration = configuration;
+            _repo = repo;
         }
 
         [HttpPost("register")]
@@ -24,7 +26,7 @@ namespace Uppgift1.Controllers
         {
             if (registerDto == null || registerDto.Username == "" || registerDto.Password == "") return BadRequest(new { message = "Error" });
 
-            var existingUser = _context.User.Where(x => x.Username == registerDto.Username).FirstOrDefault();
+            var existingUser = _repo.GetUser(registerDto.Username);
 
             if (existingUser != null)
                 return BadRequest(new { message = "User already exist" });
@@ -33,8 +35,7 @@ namespace Uppgift1.Controllers
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
 
             User user = new User(registerDto.Username, passwordHash);
-            _context.Add(user);
-            _context.SaveChanges();
+            _repo.AddUser(user);
 
             return Ok(new { message = $"Registerd!" });
         }
@@ -43,7 +44,7 @@ namespace Uppgift1.Controllers
         {
             if (loginDto == null) return BadRequest(new { message = $"Error" });
 
-            var userFromDb = _context.User.Where(x => x.Username == loginDto.Username).FirstOrDefault();
+            var userFromDb = _repo.GetUser(loginDto.Username);
 
             if (userFromDb == null)
                 return BadRequest(new { message = $"Bad password or username" });
