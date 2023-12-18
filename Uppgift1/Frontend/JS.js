@@ -172,7 +172,9 @@ async function getAllNotes(token, userId) {
 
         const data = await response.json();
         //Using this function again to convert to LI elements.
-        addNotesToList(data.notes);
+        if (data.notes && Array.isArray(data.notes) && data.notes.length > 0) {
+            addNotesToList(data.notes);
+        }
 
     } catch (error) {
         returnMsg.textContent = error.message;
@@ -519,8 +521,6 @@ function updateAmountItemsLeft() {
 }
 
 let clearCompletedBtn = document.querySelector("#clear-completed");
-
-clearCompletedBtn.addEventListener("click", clearCompleted);
 
 function clearCompleted() {
     let noteList = document.querySelectorAll("#to-do-list li");
